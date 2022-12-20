@@ -1,0 +1,96 @@
+version: '3.4'
+
+services:
+  php-fpm:
+    container_name: "antl1.php-fpm"
+    hostname: "php-fpm"
+    build: docker/php-fpm
+    restart: unless-stopped
+    tty: true
+    depends_on:
+      - mysql
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      APP_BASE_PATH: /var/www/html
+      SUPERVISORD_CONF: "/var/www/html/config/supervisor/*.conf"
+#      XDEBUG_CONFIG: "enable=${XDEBUG_ENABLE}"
+      COMPOSER_MEMORY_LIMIT: -1
+
+#  nginx:
+#    container_name: "negri_app.nginx"
+#    hostname: "nginx"
+#    build: docker/nginx
+#    restart: unless-stopped
+#    tty: true
+#    depends_on:
+#      - php-fpm
+#    ports:
+#      - "8085:80"
+#    working_dir: /var/www/html
+#    volumes:
+#      - ./:/var/www/html
+#    environment:
+#      NGINX_HOST_PATH: "/var/www/html/public"
+#      NGINX_PHP_FPM_HOST: "negri_app.php-fpm"
+#    logging:
+#      driver: "json-file"
+#      options:
+#        max-size: "256m"
+#        max-file: "10"
+
+  mysql:
+    container_name: "antl1.mysql"
+    hostname: "mysql"
+    image: arm64v8/mysql:8
+    platform: linux/arm64/v8
+    command: --default-authentication-plugin=mysql_native_password
+    tty: true
+    restart: always
+    ports:
+      - "3321:3306"
+    volumes:
+      - antl1_mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: antl1_app
+      MYSQL_ROOT_PASSWORD: rootAdmin
+
+#  node:
+#    container_name: "negri_app.node"
+#    hostname: "node"
+#    image: node:12.18.2-alpine
+#    #    restart: unless-stopped
+#    working_dir: /app
+#    user: "1000"
+#    volumes:
+#      - ./:/app
+#    command: npm run watch
+
+  redis:
+    container_name: "antl1.redis"
+    hostname: "redis"
+    image: redis
+    restart: unless-stopped
+    volumes:
+      - antl1_redis_data:/data
+
+#  mailhog:
+#    container_name: "negri_app.mailhog"
+#    hostname: "mailhog"
+#    image: mailhog/mailhog
+#    logging:
+#      driver: 'none'  # disable saving logs
+#    ports:
+#      - 1025:1025 # smtp server
+#      - 8025:8025 # web ui
+
+volumes:
+  antl1_mysql_data:
+    driver: local
+  antl1_redis_data:
+    driver: local

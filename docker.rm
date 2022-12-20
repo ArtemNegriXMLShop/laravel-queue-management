@@ -1,0 +1,4 @@
+docker exec -it antl1.php-fpm /bin/bash
+
+
+docker exec -it antl1.mysql /bin/bash
